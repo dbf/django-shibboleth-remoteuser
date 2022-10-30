@@ -1,3 +1,13 @@
+NOTICE
+======
+
+> This is a heavily patched version of django-shibboleth-remoteuser.
+> It contains patches from several sources, including PR from the
+> original repository and [GWDG's Discuss Data Project](https://gitlab.gwdg.de/discuss-data).
+> It's intended to be used with [django-dpotools](https://github.com/dbf/django-dpotools) and [DFN-AAI](https://www.aai.dfn.de/).
+> *I do not recommend to use it for other projects.*
+> Original readme follows:
+
 django-shibboleth-remoteuser
 ============================
 
