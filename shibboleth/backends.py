@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import RemoteUserBackend
-from django.conf import settings
+from shibboleth import settings
 
 User = get_user_model()
 
@@ -12,13 +12,9 @@ class ShibbolethRemoteUserBackend(RemoteUserBackend):
     is handling authentication outside of Django.
 
     By default, the ``authenticate`` method creates ``User`` objects for
-    usernames that don't already exist in the database.  Subclasses can disable
-    this behavior by setting the ``create_unknown_user`` attribute to
-    ``False``.
+    usernames that don't already exist in the database.  This feature can be disabled
+    by setting `CREATE_UNKNOWN_USER` to `false`.
     """
-
-    # Create a User object if not already in the database?
-    create_unknown_user = getattr(settings, 'CREATE_UNKNOWN_USER', True)
 
     def authenticate(self, request, remote_user, shib_meta):
         """
@@ -29,9 +25,13 @@ class ShibbolethRemoteUserBackend(RemoteUserBackend):
             return
         username = self.clean_username(remote_user)
         field_names = [x.name for x in User._meta.get_fields()]
-        shib_user_params = dict([(k, shib_meta[k]) for k in field_names if k in shib_meta])
+        shib_user_params = dict(
+            [(k, shib_meta[k]) for k in field_names if k in shib_meta]
+        )
 
-        user = self.setup_user(request=request, username=username, defaults=shib_user_params)
+        user = self.setup_user(
+            request=request, username=username, defaults=shib_user_params
+        )
         if user:
             self.update_user_params(user=user, params=shib_user_params)
             return user if self.user_can_authenticate(user) else None
@@ -44,14 +44,13 @@ class ShibbolethRemoteUserBackend(RemoteUserBackend):
         Returns None if ``create_unknown_user`` is ``False`` and a ``User``
         object with the given username is not found in the database.
         """
+        if settings.CREATE_UNKNOWN_USER:
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                user = User.objects.create_user(**defaults)
 
-        # Note that this could be accomplished in one try-except clause, but
-        # instead we use get_or_create when creating unknown users since it has
-        # built-in safeguards for multiple threads.
-        if self.create_unknown_user:
-            user, created = User.objects.get_or_create(username=username, defaults=defaults)
-            if created:
-                user = self.handle_created_user(request, user)
+            user = self.handle_created_user(request, user)
         else:
             try:
                 user = User.objects.get(username=username)
@@ -71,7 +70,7 @@ class ShibbolethRemoteUserBackend(RemoteUserBackend):
         user.save()
         try:
             return self.configure_user(request, user)
-        except TypeError: #on django < 2.2, configure_user just takes the user parameter
+        except TypeError:  # on django < 2.2, configure_user just takes the user parameter
             return self.configure_user(user)
 
     @staticmethod
