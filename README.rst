@@ -8,7 +8,7 @@ NOTICE
    used with
    `django-dpotools <https://github.com/dbf/django-dpotools>`__ and
    `DFN-AAI <https://www.aai.dfn.de/>`__. *I do not recommend to use it
-   for other projects.* Original readme follows:
+   for anything else.* Original readme follows:
 
 django-shibboleth-remoteuser
 ============================

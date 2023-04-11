@@ -32,3 +32,5 @@ LOGOUT_URL = getattr(
 LOGOUT_REDIRECT_URL = getattr(settings, "SHIBBOLETH_LOGOUT_REDIRECT_URL", None)
 # Set to true if you are testing and want to insert sample headers.
 MOCK_HEADERS = getattr(settings, "SHIBBOLETH_MOCK_HEADERS", False)
+# unquote URL encoded attributes
+UNQUOTE_ATTRIBUTES = getattr(settings, "SHIBBOLETH_UNQUOTE_ATTRIBUTES", None)

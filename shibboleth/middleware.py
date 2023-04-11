@@ -1,5 +1,6 @@
 import re
 from typing import List
+from urllib.parse import unquote
 
 from django.contrib.auth.middleware import RemoteUserMiddleware
 from django.contrib.auth.models import Group
@@ -30,6 +31,8 @@ class ShibbolethRemoteUserMiddleware(RemoteUserMiddleware):
         # Locate the remote user header.
         try:
             username = request.META[self.header]
+            if settings.UNQUOTE_ATTRIBUTES:
+                username = unquote(username)
         except KeyError:
             # If specified header doesn't exist then return (leaving
             # request.user set to AnonymousUser by the
@@ -118,6 +121,8 @@ class ShibbolethRemoteUserMiddleware(RemoteUserMiddleware):
                 attr_processor = lambda x: x  # noqa: E731
             value = meta.get(header, None)
             if value:
+                if settings.UNQUOTE_ATTRIBUTES:
+                    value = unquote(value)
                 shib_attrs[name] = attr_processor(value)
             elif required:
                 error = True
@@ -130,9 +135,10 @@ class ShibbolethRemoteUserMiddleware(RemoteUserMiddleware):
         """
         groups: List[str] = []
         for attr in settings.GROUP_ATTRIBUTES:
-            parsed_groups = re.split(
-                "|".join(settings.GROUP_DELIMITERS), request.META.get(attr, "")
-            )
+            value = request.META.get(attr, "")
+            if settings.UNQUOTE_ATTRIBUTES:
+                value = unquote(value)
+            parsed_groups = re.split("|".join(settings.GROUP_DELIMITERS), value)
             groups += filter(bool, parsed_groups)
         return groups
 

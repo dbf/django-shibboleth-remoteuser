@@ -70,7 +70,9 @@ class ShibbolethRemoteUserBackend(RemoteUserBackend):
         user.save()
         try:
             return self.configure_user(request, user)
-        except TypeError:  # on django < 2.2, configure_user just takes the user parameter
+        except (
+            TypeError
+        ):  # on django < 2.2, configure_user just takes the user parameter
             return self.configure_user(user)
 
     @staticmethod
